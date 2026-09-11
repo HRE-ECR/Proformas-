@@ -1,3 +1,4 @@
+using System.IO;
 using PdfSharp.Pdf; using PdfSharp.Pdf.IO; using ProformaViewer.Models;
 namespace ProformaViewer.Services;
 public sealed record ExportResult(int PageCount, IReadOnlyList<string> Errors);
