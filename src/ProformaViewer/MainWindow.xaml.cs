@@ -1,4 +1,3 @@
-using System.Windows.Input;
 using System.Collections.ObjectModel; using System.Diagnostics; using System.Windows; using Microsoft.Extensions.Configuration; using Microsoft.Win32; using ProformaViewer.Models; using ProformaViewer.Services;
 namespace ProformaViewer;
 public partial class MainWindow : Window {
@@ -13,5 +12,5 @@ public partial class MainWindow : Window {
  void Selection_Click(object s,RoutedEventArgs e)=>UpdateCount();
  void UpdateCount(){var n=all.Count(x=>x.IsSelected);ExportButton.IsEnabled=n>0;StatusText.Text=$"{n} selected";}
  async void Export_Click(object s,RoutedEventArgs e){var chosen=all.Where(x=>x.IsSelected).ToList();var dlg=new SaveFileDialog{Filter="PDF files (*.pdf)|*.pdf",FileName=$"Combined Proformas {DateTime.Now:yyyy-MM-dd HHmm}.pdf",AddExtension=true,DefaultExt=".pdf"};if(dlg.ShowDialog()!=true)return;SetBusy(true,"Exporting pages…");Progress.Visibility=Visibility.Visible;var p=new Progress<int>(v=>Progress.Value=v);try{var r=await pdf.ExportAsync(chosen,dlg.FileName,p);StatusText.Text=$"Export complete: {r.PageCount} pages";var message=$"Created {r.PageCount}-page PDF."+(r.Errors.Count>0?$"\n\nWarnings:\n{string.Join("\n",r.Errors)}":"");if(MessageBox.Show(message+"\n\nOpen the PDF now?","Export complete",MessageBoxButton.YesNo,r.Errors.Count>0?MessageBoxImage.Warning:MessageBoxImage.Information)==MessageBoxResult.Yes)Process.Start(new ProcessStartInfo(dlg.FileName){UseShellExecute=true});}catch(Exception ex){MessageBox.Show(ex.Message,"Export failed",MessageBoxButton.OK,MessageBoxImage.Error);}finally{Progress.Visibility=Visibility.Collapsed;SetBusy(false);UpdateCount();}}
- void SetBusy(bool busy,string? text=null){ExportButton.IsEnabled=!busy&&all.Any(x=>x.IsSelected);if(text!=null)StatusText.Text=text;Mouse.OverrideCursor=busy?System.Windows.Input.Cursors.Wait:null;}
+ void SetBusy(bool busy,string? text=null){ExportButton.IsEnabled=!busy&&all.Any(x=>x.IsSelected);if(text!=null)StatusText.Text=text;System.Windows.Input.Mouse.OverrideCursor=busy?System.Windows.Input.Cursors.Wait:null;}
 }
