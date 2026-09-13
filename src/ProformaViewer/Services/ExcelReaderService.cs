@@ -15,14 +15,25 @@ public sealed class ExcelReaderService
                 "Database workbook was not found or the network drive is unavailable.", filePath);
 
         using var workbook = new XLWorkbook(filePath);
-        var worksheet = workbook.Worksheets.First();
+        var worksheet = workbook.Worksheets.FirstOrDefault()
+            ?? throw new System.IO.InvalidDataException("Workbook has no worksheets.");
         var usedRange = worksheet.RangeUsed()
             ?? throw new System.IO.InvalidDataException("Workbook is empty.");
 
-        var headers = usedRange.FirstRow().Cells().ToDictionary(
-            cell => cell.GetString().Trim(),
-            cell => cell.Address.ColumnNumber,
-            StringComparer.OrdinalIgnoreCase);
+        // Do not use ToDictionary on every cell in the first row. Formatted blank
+        // columns can be part of RangeUsed and several blank headers have the same
+        // empty key. Only retain non-empty headers, and report duplicate named headers.
+        var headers = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        foreach (var cell in usedRange.FirstRow().Cells())
+        {
+            var header = cell.GetString().Trim();
+            if (string.IsNullOrWhiteSpace(header))
+                continue;
+
+            if (!headers.TryAdd(header, cell.Address.ColumnNumber))
+                throw new System.IO.InvalidDataException(
+                    $"The workbook contains duplicate header '{header}'.");
+        }
 
         foreach (var requiredHeader in new[] { "Title", "Path", "Page" })
             if (!headers.ContainsKey(requiredHeader))
@@ -37,21 +48,34 @@ public sealed class ExcelReaderService
             var pageSpec = row.Cell(headers["Page"]).GetFormattedString().Trim();
 
             if (string.IsNullOrWhiteSpace(title) && string.IsNullOrWhiteSpace(path) &&
-                string.IsNullOrWhiteSpace(pageSpec)) continue;
+                string.IsNullOrWhiteSpace(pageSpec))
+                continue;
+
+            // Ignore incomplete spacer or accidental rows while loading all valid rows.
             if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(path) ||
-                string.IsNullOrWhiteSpace(pageSpec)) continue;
+                string.IsNullOrWhiteSpace(pageSpec))
+                continue;
 
             if (Uri.TryCreate(path, UriKind.Absolute, out var uri) && uri.IsFile)
                 path = Uri.UnescapeDataString(uri.LocalPath);
 
-            entries.Add(new ProformaEntry
+            try
             {
-                Title = title,
-                Path = path,
-                PageSpec = pageSpec,
-                Pages = PageSpecParser.Parse(pageSpec)
-            });
+                entries.Add(new ProformaEntry
+                {
+                    Title = title,
+                    Path = path,
+                    PageSpec = pageSpec,
+                    Pages = PageSpecParser.Parse(pageSpec)
+                });
+            }
+            catch (FormatException exception)
+            {
+                throw new System.IO.InvalidDataException(
+                    $"Invalid Page value '{pageSpec}' for '{title}'.", exception);
+            }
         }
+
         return entries;
     }
 }
