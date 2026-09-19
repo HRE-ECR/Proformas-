@@ -1,18 +1,23 @@
-# Proforma Viewer v1.4.0
+# Proforma Viewer v2.0.0
 
-## AT200 frequency selector
-The AT200 toolbar contains an X01-X24 selector. Choosing a frequency reads the external `385 Star chart.xlsx` workbook and selects matching VMI tiles. AT300 does not show this selector.
+## Local AT200 frequency file
 
-### Editing frequencies
-Edit the star chart on the network drive. Keep `VMI Task` in the first column, keep `X01` through `X24` as headers, and place any non-empty marker such as `★` in cells where a task is required. The app reads the workbook each time a frequency is selected, so no code rebuild is required.
+The AT200 X01-X24 selector reads `385 Star chart.xlsx` from the same folder as `ProformaViewer.exe`. It does not use a network schedule path and does not read `Schedules:AT200` from configuration.
 
-Default schedule path:
-`I:\ServiceDelivery\ECR\1. Proforma Viewer\Databases\385 Star chart.xlsx`
+The GitHub build automatically publishes these files together:
 
-If the workbook moves, edit `Schedules:AT200` in `src/ProformaViewer/appsettings.json`.
+- `ProformaViewer.exe`
+- `385 Star chart.xlsx`
+- `appsettings.json`
 
-## GitHub deployment
-Upload the complete repository, including `.github`, to `main`. The Build workflow produces a self-contained `ProformaViewer-win-x64` artifact.
+## Editing frequencies
 
-## Export completion prompt
-After a successful export, the application displays an **Export complete** dialog showing the page count and any warnings. Selecting **Yes** opens the combined PDF using the default Windows PDF application. Selecting **No** leaves the file saved without opening it.
+Use the **Edit frequency file** button on the AT200 page, or open `385 Star chart.xlsx` beside the executable. Keep the `VMI Task` column and the `X01` through `X24` headings. Any non-empty marker means the task is selected for that frequency. Save the workbook and choose the frequency again.
+
+## Important
+
+Download and extract the complete `ProformaViewer-win-x64` GitHub Actions artifact. Do not copy only the EXE, because the editable star chart must remain beside it.
+
+## Build
+
+Upload the complete repository, including `.github`, then push to `main`. The Build workflow creates the self-contained Windows x64 artifact.

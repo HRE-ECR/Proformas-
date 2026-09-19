@@ -1,3 +1,9 @@
 # Deployment
 
-Place `385 Star chart.xlsx` at the configured network path, push this repository to GitHub, and download the Windows build artifact when Actions completes.
+1. Push the complete repository to GitHub.
+2. Download the complete `ProformaViewer-win-x64` artifact.
+3. Extract the complete artifact folder.
+4. Keep `ProformaViewer.exe`, `385 Star chart.xlsx`, and `appsettings.json` together.
+5. Run `ProformaViewer.exe`.
+
+The AT200 star chart is local to the application folder and is editable without rebuilding.
