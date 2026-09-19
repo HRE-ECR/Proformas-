@@ -1,3 +1,3 @@
 # Deployment
 
-Push all contents, including `.github`, to GitHub. Download the Windows artifact after the Build workflow succeeds. Users require access to the configured network drive.
+Place `385 Star chart.xlsx` at the configured network path, push this repository to GitHub, and download the Windows build artifact when Actions completes.
